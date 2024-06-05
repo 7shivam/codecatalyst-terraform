@@ -1,0 +1,28 @@
+Name: Workflow_fb12
+SchemaVersion: "1.0"
+
+# Optional - Set automatic triggers.
+Triggers:
+  - Type: PUSH
+    Branches:
+      - main
+Actions:
+  TerraformCommunityEdition_d0:
+    # Identifies the action. Do not modify this value.
+    Identifier: codecatalyst-labs/provision-with-terraform-community@v1.0.2
+    # Specifies the source and/or artifacts to pass to the action as input.
+    Inputs:
+      # Optional
+      Sources:
+        - WorkflowSource # This specifies that the action requires this Workflow as a source
+    Compute:
+      Type: EC2
+    # Defines the action's properties.
+    Configuration:
+      # Required; type: string; description: The Terraform operation mode, should one of test or plan or apply
+      TerraformOperationMode: plan
+      TerraformVersion: "1.8"
+      AWSRegion: us-east-1
+      StateBucket: demotf
+      StateKey: demo
+      StateTable: demo
