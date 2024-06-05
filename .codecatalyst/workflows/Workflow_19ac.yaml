@@ -1,11 +1,55 @@
-Name: Workflow_19ac
+Name: terraform-action-workflow
+Compute:
+  Type: EC2
+  Fleet: Linux.x86-64.Large
 SchemaVersion: "1.0"
-
-# Optional - Set automatic triggers.
 Triggers:
   - Type: Push
     Branches:
-      - main
-
-# Required - Define action configurations.
-Actions:
+      -  main
+Actions: 
+  PlanTerraform:
+    Identifier: codecatalyst-labs/provision-with-terraform-community@v1
+    Environment:
+      Name: dev 
+      Connections:
+        - Name: codecatalyst
+          Role: CodeCatalystWorkflowDevelopmentRole # The IAM role to be used
+    Inputs:
+      Sources:
+        - WorkflowSource
+    Outputs:
+      Artifacts:
+        - Name: tfplan # generates a tfplan output artifact
+          Files:
+            - tfplan.out
+    Configuration:
+      AWSRegion: eu-west-2
+      StateBucket: tfstate-bucket # The Terraform state S3 Bucket
+      StateKey: terraform.tfstate # The Terraform state file
+      StateKeyPrefix: states/ # The path to the state file (optional)
+      StateTable: tfstate-table # The Dynamo DB database
+      TerraformVersion: ‘1.5.1’ # The Terraform version to be used
+      TerraformOperationMode: plan # The Terraform operation- can be plan or apply
+  ApplyTerraform:
+    Identifier: codecatalyst-labs/provision-with-terraform-community@v1
+    DependsOn:
+      - PlanTerraform
+    Environment:
+      Name: dev 
+      Connections:
+        - Name: codecatalyst
+          Role: CodeCatalystWorkflowDevelopmentRole
+    Inputs:
+      Sources:
+        - WorkflowSource
+      Artifacts:
+        - tfplan
+    Configuration:
+      AWSRegion: eu-west-2
+      StateBucket: tfstate-bucket
+      StateKey: terraform.tfstate
+      StateKeyPrefix: states/
+      StateTable: tfstate-table
+      TerraformVersion: '1.5.1'
+      TerraformOperationMode: apply
